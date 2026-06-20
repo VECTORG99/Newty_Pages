@@ -1,0 +1,91 @@
+<!--
+  Newty page template skeleton — copy and adapt.
+
+  Conventions:
+  - {#include layout/main activePage="yourkey"} — homedir layout
+  - {#title}{i18n:page_title}{/title} — page title
+  - {#head}...{/head} — extra CSS/JS
+  - {#body}...{/body} — page content
+  - All user-visible strings → {i18n:key} (never hardcoded)
+  - Server computes toggle state (nextCount, isMax)
+  - Period/count passed as data
+
+  Replace:
+    mypage_*    → your i18n key prefix
+    item        → your data model field names
+    btn-primary → match your project's button CSS
+-->
+{#include layout/main activePage="mypage"}
+
+{#title}{i18n:mypage_page_title}{/title}
+
+{#head}
+<style>
+  /* Your page-specific CSS using project CSS variables */
+  .mypage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1.25rem;
+  }
+</style>
+{/head}
+
+{#body}
+<header class="page-header">
+  <div class="section-header">
+    <p class="section-subtitle">{i18n:mypage_subtitle}</p>
+    <h1>{i18n:mypage_hero_title}</h1>
+  </div>
+</header>
+
+<section class="page-grid">
+  <div class="section-card">
+
+    <!-- Period toggle: daily / weekly / monthly -->
+    <div class="mypage-period-bar">
+      <a href="/mypage?period=daily&count={count}"
+         class="btn-primary {#if period == 'daily'}active{/if}">
+        {i18n:mypage_period_daily}
+      </a>
+      <a href="/mypage?period=weekly&count={count}"
+         class="btn-primary {#if period == 'weekly'}active{/if}">
+        {i18n:mypage_period_weekly}
+      </a>
+      <a href="/mypage?period=monthly&count={count}"
+         class="btn-primary {#if period == 'monthly'}active{/if}">
+        {i18n:mypage_period_monthly}
+      </a>
+    </div>
+
+    <!-- Item cards -->
+    {#if items.isEmpty()}
+      <div class="mypage-empty">
+        <p>{i18n:mypage_empty}</p>
+      </div>
+    {#else}
+      <div class="mypage-grid">
+        {#for item in items}
+          <article class="mypage-card">
+            <h3><a href="{item.url}">{item.title}</a></h3>
+            <p>{item.description}</p>
+          </article>
+        {/for}
+      </div>
+
+      <!-- Show more / Show less toggle (cycles 1→3→5→10→1) -->
+      <div class="mypage-toggle-bar">
+        <a href="/mypage?period={period}&count={nextCount}"
+           class="mypage-show-btn">
+          <span class="material-symbols-outlined">
+            {#if isMax}expand_less{#else}expand_more{/if}
+          </span>
+          {#if isMax}{i18n:mypage_show_less}{#else}{i18n:mypage_show_more}{/if}
+        </a>
+      </div>
+    {/if}
+
+  </div>
+</section>
+{/body}
+
+{/include}

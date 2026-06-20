@@ -1,50 +1,43 @@
 # Newty_Pages
 
-Skeleton for building data-driven pages with the Newty pattern inside a Quarkus + Qute application.
+Esqueleto para construir páginas web data-driven usando el patrón Newty dentro de una aplicación Quarkus + Qute.
 
-## Pattern
+Parte del ecosistema [Newty](https://github.com/VECTORG99/newty) — el modelo conceptual 3-capas (Extractor → Transformador → Renderizador) aplicado al renderizado de páginas.
 
-```
-ScraperService  →  fetches + parses remote data
-PageResource    →  REST endpoint, passes data to template  
-page.html       →  Qute template with period toggle + show more/less
-messages_*.properties → i18n keys (EN canonical, ES mirror)
-```
+## Alcance
+
+Este repo contiene el **esqueleto mínimo** para integrar una página Newty en cualquier proyecto Quarkus:
+
+| Archivo | Rol |
+|---|---|
+| `src/service/ScraperService.java` | Fetch + parse de fuente externa (GitHub Trending, API, RSS) |
+| `src/resource/PageResource.java` | Endpoint REST con query params (period, count), UI state server-side |
+| `src/template/page.html` | Template Qute con period toggle + show more/less, cero strings hardcodeados |
+| `src/i18n/messages.properties` | i18n base (EN canónico, copiar a `_es.properties` para ES mirror) |
+
+## Ecosistema Newty
+
+| Repo | Qué hace |
+|---|---|
+| [Newty](https://github.com/VECTORG99/newty) | Script CLI standalone (Python) + modelo conceptual (ABSTRACTION.md) |
+| **Newty_Pages** (este repo) | Esqueleto para páginas Quarkus + Qute + i18n |
+| Newty_Bot (futuro) | Mismo extractor → JSON → webhook Discord/Slack |
 
 ## Quick start
 
-1. Copy `src/service/ScraperService.java` → adapt:
-   - Replace `Item` record with your domain model
-   - Replace `buildUrl()` with your data source
-   - Replace `parse()` with your HTML/JSON parser
-   - Replace `translate()` with your text transformation
+1. Copiar `ScraperService.java` → reemplazar `Item` record, `buildUrl()`, `parse()`, `translate()`
+2. Copiar `PageResource.java` → ajustar `COUNT_STEPS`, descomentar `@CheckedTemplate`, inyectar tu servicio
+3. Copiar `page.html` → reemplazar `mypage_*` por tus claves i18n, ajustar CSS a tu proyecto
+4. Copiar `messages.properties` → renombrar claves, crear `messages_es.properties` mirror
 
-2. Copy `src/resource/PageResource.java` → adapt:
-   - Replace `COUNT_STEPS` with your toggle sequence
-   - Uncomment `@CheckedTemplate` and `TemplateInstance` return
-   - Inject your service
+## Reglas de diseño
 
-3. Copy `src/template/page.html` → adapt:
-   - Replace `mypage_*` prefix with your i18n key prefix
-   - Match your project's CSS classes (btn-primary, layout/main)
-   - Replace `item.fieldName` with your record fields
+1. **Cero strings hardcodeados** — todo texto visible va por `{i18n:clave}`
+2. **Extractor nunca rompe** — retorna lista vacía si falla (nunca null, nunca excepción)
+3. **UI state server-side** — `nextCount`, `isMax` los calcula el resource, el template solo renderiza
+4. **Ordenamiento server-side** — los datos llegan ordenados al template
+5. **Caché con `@Scheduled`** — opcional: refresh periódico (medianoche diario/semanal/mensual)
 
-4. Copy `src/i18n/messages.properties` → adapt:
-   - Replace `mypage_*` keys with yours
-   - Add `_es.properties` mirror with Spanish translations
-   - Add `@Message` methods to your MessageBundle interface
+## Licencia
 
-## Rules
-- Zero hardcoded user-visible strings (all via `{i18n:key}`)
-- Server computes toggle state (nextCount, isMax) — template just renders
-- Scraper returns empty list on failure (never null, never throws)
-- Sort data server-side before passing to template
-
-## Scheduling (optional)
-
-Add `@Scheduled(cron="...")` to your service for periodic cache refresh:
-
-```java
-@Scheduled(cron = "0 0 0 * * ?")   // midnight daily
-void refreshDaily() { cache.put("daily", fetch(...)); }
-```
+MIT
